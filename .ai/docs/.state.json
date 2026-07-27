@@ -1,0 +1,12 @@
+{
+  "baseline": "f190342d5d441fa1b6dfd654eff9b91d3414c116",
+  "docs": [
+    "overview.md",
+    "architecture.md",
+    "stack.md",
+    "conventions.md",
+    "glossary.md",
+    "domain/README.md",
+    "domain/sensor-fusion.md"
+  ]
+}
