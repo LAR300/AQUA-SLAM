@@ -64,9 +64,16 @@ boost::shared_ptr<ros::Publisher> pimg_test_pub;
 void init_logging()
 {
 //	logging::add_file_log("debug_log.log");
+	// The path used to be hardcoded to the author's machine
+	// (/home/da/project/...), and boost::filesystem aborts the process when
+	// it cannot create it -- which is every machine but theirs. Takes
+	// ORBSLAM3_LOG_DIR, defaulting to the working directory.
+	const char *log_dir = std::getenv("ORBSLAM3_LOG_DIR");
+	const std::string log_pattern =
+		std::string(log_dir ? log_dir : ".") + "/orbslam3_log_%N.log";
 	logging::add_file_log
 		(
-			keywords::file_name = "/home/da/project/ros/orb_dvl2_ws/src/dvl2/log/log_%N.log",
+			keywords::file_name = log_pattern,
 			keywords::rotation_size = 20 * 1024 * 1024,
 			keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
 			keywords::format = "%Message%",
@@ -203,6 +210,26 @@ int main(int argc, char **argv)
 	std::thread sync_thread(&ImageGrabber::SyncWithImu2, &igb);
 
 	ros::spin();
+
+	// Dump the estimated trajectory on shutdown.
+	//
+	// As shipped, this node emits nothing: the pose returned by
+	// TrackStereoGroDVL is discarded, no topic is advertised, and the
+	// traj_path parameters in the launch files are vestigial -- System.cc
+	// only reads out_path, and only for the Atlas. So a run leaves no
+	// record of what it estimated, which makes it impossible to compare
+	// against anything.
+	//
+	// Both files are written because they are not interchangeable:
+	// keyframes are the graph solution, the per-frame trajectory is
+	// propagated between them and is longer for that reason alone.
+	// Measure the keyframes.
+	std::string traj_path = "/data/aqua_out/trajectory_frames.tum";
+	std::string kf_path = "/data/aqua_out/trajectory_keyframes.tum";
+	ros::param::get("/ORBSLAM3_tightly/traj_path", traj_path);
+	ros::param::get("/ORBSLAM3_tightly/kf_traj_path", kf_path);
+	SLAM.SaveTrajectoryTUM(traj_path);
+	SLAM.SaveKeyFrameTrajectoryTUM(kf_path);
 
 	return 0;
 }
