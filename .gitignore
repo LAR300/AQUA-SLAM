@@ -1,1 +1,11 @@
 /cmake_variables.txt
+
+# Saidas da compilacao. O CMakeLists deste repo escreve as bibliotecas e os
+# binarios DENTRO da arvore de codigo (CMAKE_LIBRARY_OUTPUT_DIRECTORY aponta
+# para ${PROJECT_SOURCE_DIR}/lib), por isso um `catkin_make` suja o repo.
+/lib/
+/bin/
+Thirdparty/*/lib/
+Thirdparty/*/bin/
+Thirdparty/*/build/
+Vocabulary/
